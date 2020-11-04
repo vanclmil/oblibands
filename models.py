@@ -23,24 +23,6 @@ class User(UserMixin, db.Model):
         unique=False,
         nullable=False
     )
-    website = db.Column(
-        db.String(60),
-        index=False,
-        unique=False,
-        nullable=True
-    )
-    created_on = db.Column(
-        db.DateTime,
-        index=False,
-        unique=False,
-        nullable=True
-    )
-    last_login = db.Column(
-        db.DateTime,
-        index=False,
-        unique=False,
-        nullable=True
-    )
 
     def set_password(self, password):
         """Create hashed password."""
