@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField, RadioField, TextAreaField
 from wtforms.validators import DataRequired, EqualTo, Length
 
-from models import Band
+from models import Band, BAND_STATES
 
 
 class SignupForm(FlaskForm):
@@ -61,7 +61,8 @@ class EditForm(FlaskForm):
                               tags=tokens[2],
                               rating=float(tokens[3]),
                               url=tokens[4],
-                              user_id=user.id))
+                              user_id=user.id,
+                              state=BAND_STATES['approved']))
         return bands
 
 

@@ -41,8 +41,14 @@ class User(UserMixin, db.Model):
         return '<User {}>'.format(self.username)
 
 
-class Band(db.Model):
+BAND_STATES = {
+    'approved': 1,
+    'denied': 0,
+    'queued': 2
+}
 
+
+class Band(db.Model):
     __tablename__ = 'band'
     id = db.Column(
         db.Integer,
@@ -65,4 +71,7 @@ class Band(db.Model):
     )
     url = db.Column(
         db.Text
+    )
+    state = db.Column(
+        db.Integer
     )

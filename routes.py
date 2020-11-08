@@ -6,9 +6,10 @@ from app import db
 from forms import EditForm, PlayForm
 
 # Blueprint Configuration
-from models import Band
+from models import Band, BAND_STATES
 
 from numpy.random import choice
+
 
 main_bp = Blueprint(
     'main_bp', __name__,
@@ -22,7 +23,7 @@ main_bp = Blueprint(
 def dashboard():
     bandsform = EditForm()
     bands = Band.query.filter_by(user_id=current_user.id).all()
-    bandsform.fill_area(bands)
+    bandsform.fill_area([b for b in bands if b.state == BAND_STATES['approved']])
 
     playform = PlayForm()
 
@@ -41,15 +42,16 @@ def dashboard():
 def edit():
     bandsform = EditForm()
     if bandsform.validate_on_submit():
-        bands = bandsform.parse_bands(current_user)
-        bands = [db.session.merge(band) for band in bands]
-        to_delete_bands = [band for band in current_user.bands if band not in bands]
-        for band in to_delete_bands:
-            db.session.delete(band)
+        edited_bands = bandsform.parse_bands(current_user)
+        edited_bands = [db.session.merge(band) for band in edited_bands]
+        to_delete_bands = [b for b in current_user.bands
+                           if b.state == BAND_STATES['approved'] and b not in edited_bands]
+        for b in to_delete_bands:
+            b.state = BAND_STATES['denied']
         db.session.commit()
     else:
-        bands = Band.query.filter_by(user_id=current_user.id).all()
-    bandsform.fill_area(bands)
+        raise Exception('Should not happend')
+    bandsform.fill_area(edited_bands)
 
     playform = PlayForm()
 
@@ -98,7 +100,7 @@ SUPPORTED_ENGINES = {
 @main_bp.route('/play', methods=['GET', 'POST'])
 @login_required
 def play():
-    bands = Band.query.filter_by(user_id=current_user.id).all()
+    bands = Band.query.filter_by(user_id=current_user.id, state=BAND_STATES['approved']).all()
 
     if request.method == 'POST':
         playform = PlayForm()
