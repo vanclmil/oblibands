@@ -98,15 +98,22 @@ SUPPORTED_ENGINES = {
 @main_bp.route('/play', methods=['GET', 'POST'])
 @login_required
 def play():
+    bands = Band.query.filter_by(user_id=current_user.id).all()
+
     if request.method == 'POST':
         playform = PlayForm()
         if playform.validate_on_submit():
             engine_name = playform.engineselect.data
+            tags_string = playform.tagsbox.data
     else:
         engine_name = request.args.get('engine', default='default', type=str)
+        tags_string = request.args.get('tags', type=str)
     engine = SUPPORTED_ENGINES.get(engine_name, DefaultEngine)
+    tags = [t.strip() for t in tags_string.split(';') if t.strip() != '']
 
-    bands = Band.query.filter_by(user_id=current_user.id).all()
+    if tags:
+        bands = [b for b in bands if any(t in b.tags for t in tags)]
+
     ratings = [b.rating for b in bands]
     total = sum(ratings)
     probabilities = [r / total for r in ratings]

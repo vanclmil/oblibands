@@ -69,4 +69,5 @@ class PlayForm(FlaskForm):
     engineselect = RadioField('Engine',
                               choices=[('default', 'default'), ('spotify', 'Spotify'), ('youtube', 'Youtube')],
                               default='default')
+    tagsbox = StringField('Tags', render_kw={'style': 'width: 100%'})
     playsubmit = SubmitField('Let\'s rock!')

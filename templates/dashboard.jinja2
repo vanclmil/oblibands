@@ -19,9 +19,14 @@
             <form action="{{ url_for('main_bp.play') }}" method="POST">
                 {{ playform.csrf_token }}
 
-                <fieldset class="play">
+                <fieldset class="engine">
                     {{ playform.engineselect.label }}
                     {{ playform.engineselect }}
+                </fieldset>
+
+                <fieldset class="tags">
+                    {{ playform.tagsbox.label }}
+                    {{ playform.tagsbox }}
                 </fieldset>
 
                 <div class="submit-button">
