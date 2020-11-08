@@ -80,7 +80,16 @@ class YoutubeEngine:
         return cls.BASE_LINK + escaped_name
 
 
+class DefaultEngine(YoutubeEngine):
+    @classmethod
+    def completeUrl(cls, band):
+        if band.url:
+            return band.url
+        return super().completeUrl(band)
+
+
 SUPPORTED_ENGINES = {
+    'default': DefaultEngine,
     'spotify': SpotifyEngine,
     'youtube': YoutubeEngine
 }
@@ -94,8 +103,8 @@ def play():
         if playform.validate_on_submit():
             engine_name = playform.engineselect.data
     else:
-        engine_name = request.args.get('engine', default='spotify', type=str)
-    engine = SUPPORTED_ENGINES.get(engine_name, SpotifyEngine)
+        engine_name = request.args.get('engine', default='default', type=str)
+    engine = SUPPORTED_ENGINES.get(engine_name, DefaultEngine)
 
     bands = Band.query.filter_by(user_id=current_user.id).all()
     ratings = [b.rating for b in bands]
