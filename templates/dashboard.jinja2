@@ -1,11 +1,55 @@
 {% extends "layout.jinja2" %}
 
 {% block content %}
-  <h1>{{ body }}</h1>
 
-  {% if current_user.is_authenticated %}
-    <p>Hi {{ current_user.name }}!</p>
-    <a href="{{ url_for('main_bp.logout') }}">Log out</a>
-  {% endif %}
+    {% if current_user.is_authenticated %}
+        <p>Let's rock, {{ current_user.username }}!</p>
+        <a href="{{ url_for('main_bp.logout') }}">Log out</a>
+
+        <div class="form-wrapper">
+
+            {% for message in get_flashed_messages() %}
+                <div class="alert alert-warning">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+
+            <h2>Play</h2>
+            <form action="{{ url_for('main_bp.play') }}" method="POST">
+                {{ playform.csrf_token }}
+
+                <fieldset class="play">
+                    {{ playform.engineselect.label }}
+                    {{ playform.engineselect }}
+                </fieldset>
+
+                <div class="submit-button">
+                    {{ playform.playsubmit }}
+                </div>
+            </form>
+
+            <h2>Your bands</h2>
+            <form action="{{ url_for('main_bp.edit') }}" method="POST">
+                {{ bandsform.csrf_token }}
+
+                <fieldset class="bands">
+                    {{ bandsform.editarea.label }}
+                    {{ bandsform.editarea }}
+                    {% if bandsform.editarea.errors %}
+                        <ul class="errors">
+                            {% for error in bandsform.editarea.errors %}
+                                <li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </fieldset>
+
+                <div class="submit-button">
+                    {{ bandsform.editsubmit }}
+                </div>
+            </form>
+        </div>
+
+    {% endif %}
 
 {% endblock %}

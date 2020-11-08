@@ -1,7 +1,11 @@
 """Database models."""
+from sqlalchemy.orm import relationship
+
 from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from sqlalchemy import ForeignKey, Table
 
 
 class User(UserMixin, db.Model):
@@ -23,6 +27,7 @@ class User(UserMixin, db.Model):
         unique=False,
         nullable=False
     )
+    bands = relationship("Band")
 
     def set_password(self, password):
         """Create hashed password."""
@@ -34,3 +39,30 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+
+class Band(db.Model):
+
+    __tablename__ = 'band'
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+    user_id = db.Column(
+        db.Integer,
+        ForeignKey('user.id'),
+        primary_key=True
+    )
+    name = db.Column(
+        db.String(200)
+    )
+    rating = db.Column(
+        db.Float,
+        nullable=False
+    )
+    tags = db.Column(
+        db.Text
+    )
+    url = db.Column(
+        db.Text
+    )
