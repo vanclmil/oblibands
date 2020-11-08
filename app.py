@@ -8,7 +8,7 @@ login_manager = LoginManager()
 
 app = Flask(__name__)
 app.secret_key = b'necumtohlejesecret'
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://vjetname_admin:XXX@vjetname.heliohost.org/vjetname_oblibands"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://vjetname_admin:admin123@vjetname.heliohost.org/vjetname_oblibands"
 
 db.init_app(app)
 login_manager.init_app(app)

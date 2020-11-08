@@ -6,7 +6,7 @@
         <p>Let's rock, {{ current_user.username }}!</p>
         <a href="{{ url_for('main_bp.logout') }}">Log out</a>
 
-        <div class="form-wrapper">
+        <p class="form-wrapper">
 
             {% for message in get_flashed_messages() %}
                 <div class="alert alert-warning">
@@ -35,6 +35,11 @@
             </form>
 
             <h2>Your bands</h2>
+            <p>Example format:
+<pre>1	Metallica	heavy;thrash	1.0	<br>
+2	The Rolling Stones	rock	0.5	https://www.youtube.com/channel/UCB_Z6rBg3WW3NL4-QimhC2A</pre>
+            </p>
+
             <form action="{{ url_for('main_bp.edit') }}" method="POST">
                 {{ bandsform.csrf_token }}
 
