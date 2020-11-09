@@ -1,5 +1,5 @@
 """Logged-in page routes."""
-from flask import Blueprint, render_template, redirect, request, url_for
+from flask import Blueprint, flash, render_template, redirect, request, url_for
 from flask_login import current_user, login_required, logout_user
 
 from app import db
@@ -46,16 +46,19 @@ def dashboard():
 def edit():
     bandsform = EditForm(BAND_STATES['approved'])
     if bandsform.validate_on_submit():
-        edited_bands = bandsform.parse_bands(current_user)
-        edited_bands = [db.session.merge(band) for band in edited_bands]
-        to_delete_bands = [b for b in current_user.bands
-                           if b.state == BAND_STATES['approved'] and b not in edited_bands]
-        for b in to_delete_bands:
-            db.session.delete(b)
-        db.session.commit()
+        try:
+            edited_bands = bandsform.parse_bands(current_user)
+            edited_bands = [db.session.merge(band) for band in edited_bands]
+            to_delete_bands = [b for b in current_user.bands
+                               if b.state == BAND_STATES['approved'] and b not in edited_bands]
+            for b in to_delete_bands:
+                db.session.delete(b)
+            db.session.commit()
+            bandsform.fill_area(edited_bands)
+        except:
+            flash('Cannot save, respect the input format!')
     else:
         raise Exception('Should not happend')
-    bandsform.fill_area(edited_bands)
 
     newbandsform = EditForm(BAND_STATES['queued'])
     newbandsform.fill_area([b for b in current_user.bands if b.state == BAND_STATES['queued']])
@@ -81,16 +84,19 @@ def queue():
 
     newbandsform = EditForm(BAND_STATES['queued'])
     if newbandsform.validate_on_submit():
-        edited_bands = newbandsform.parse_bands(current_user)
-        edited_bands = [db.session.merge(band) for band in edited_bands]
-        to_delete_bands = [b for b in current_user.bands
-                           if b.state == BAND_STATES['queued'] and b not in edited_bands]
-        for b in to_delete_bands:
-            db.session.delete(b)
-        db.session.commit()
+        try:
+            edited_bands = newbandsform.parse_bands(current_user)
+            edited_bands = [db.session.merge(band) for band in edited_bands]
+            to_delete_bands = [b for b in current_user.bands
+                               if b.state == BAND_STATES['queued'] and b not in edited_bands]
+            for b in to_delete_bands:
+                db.session.delete(b)
+            db.session.commit()
+            newbandsform.fill_area(edited_bands)
+        except:
+            flash('Cannot save, respect the input format!')
     else:
         raise Exception('Should not happend')
-    newbandsform.fill_area(edited_bands)
 
     playform = PlayForm()
 
@@ -155,6 +161,10 @@ def play():
 
     if tags:
         bands = [b for b in bands if any(t in b.tags for t in tags)]
+
+    if not bands:
+        flash('Nothing to play!')
+        return redirect(url_for('main_bp.dashboard'))
 
     ratings = [b.rating for b in bands]
     total = sum(ratings)

@@ -60,6 +60,7 @@ class EditForm(FlaskForm):
         bands = []
         for i, band in enumerate(bands_str_list):
             tokens = [t.strip() for t in band.split('\t')]
+
             bands.append(Band(id=i,
                               name=tokens[0],
                               tags=tokens[1],
