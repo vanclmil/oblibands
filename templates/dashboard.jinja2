@@ -58,6 +58,28 @@
                     {{ bandsform.editsubmit }}
                 </div>
             </form>
+
+            <h2>New bands</h2>
+
+            <form action="{{ url_for('main_bp.queue') }}" method="POST">
+                {{ newbandsform.csrf_token }}
+
+                <fieldset class="queue">
+                    {{ newbandsform.editarea.label }}
+                    {{ newbandsform.editarea }}
+                    {% if newbandsform.editarea.errors %}
+                        <ul class="errors">
+                            {% for error in newbandsform.editarea.errors %}
+                                <li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </fieldset>
+
+                <div class="submit-button">
+                    {{ newbandsform.editsubmit }}
+                </div>
+            </form>
+
         </div>
 
     {% endif %}

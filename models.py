@@ -59,6 +59,10 @@ class Band(db.Model):
         ForeignKey('user.id'),
         primary_key=True
     )
+    state = db.Column(
+        db.Integer,
+        primary_key=True
+    )
     name = db.Column(
         db.String(200)
     )
@@ -71,7 +75,4 @@ class Band(db.Model):
     )
     url = db.Column(
         db.Text
-    )
-    state = db.Column(
-        db.Integer
     )

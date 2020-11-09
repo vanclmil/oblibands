@@ -44,8 +44,12 @@ class EditForm(FlaskForm):
                                                  'style': 'overflow: scroll; white-space: pre'})
     editsubmit = SubmitField('Save')
 
+    def __init__(self, state):
+        super(EditForm, self).__init__()
+        self.state = state
+
     def fill_area(self, bands):
-        bands_str_list = ['\t'.join([str(band.id), band.name, band.tags, str(band.rating), band.url])
+        bands_str_list = ['\t'.join([band.name, band.tags, str(band.rating), band.url])
                           for band in bands]
         bands_str = '\n'.join(bands_str_list)
         self.editarea.data = bands_str
@@ -54,15 +58,15 @@ class EditForm(FlaskForm):
         bands_str = self.editarea.data
         bands_str_list = bands_str.split('\n')
         bands = []
-        for band in bands_str_list:
+        for i, band in enumerate(bands_str_list):
             tokens = [t.strip() for t in band.split('\t')]
-            bands.append(Band(id=int(tokens[0]),
-                              name=tokens[1],
-                              tags=tokens[2],
-                              rating=float(tokens[3]),
-                              url=tokens[4],
+            bands.append(Band(id=i,
+                              name=tokens[0],
+                              tags=tokens[1],
+                              rating=float(tokens[2]),
+                              url=tokens[3],
                               user_id=user.id,
-                              state=BAND_STATES['approved']))
+                              state=self.state))
         return bands
 
 

@@ -10,7 +10,6 @@ from models import Band, BAND_STATES
 
 from numpy.random import choice
 
-
 main_bp = Blueprint(
     'main_bp', __name__,
     template_folder='templates',
@@ -21,9 +20,13 @@ main_bp = Blueprint(
 @main_bp.route('/', methods=['GET'])
 @login_required
 def dashboard():
-    bandsform = EditForm()
     bands = Band.query.filter_by(user_id=current_user.id).all()
+
+    bandsform = EditForm(BAND_STATES['approved'])
     bandsform.fill_area([b for b in bands if b.state == BAND_STATES['approved']])
+
+    newbandsform = EditForm(BAND_STATES['queued'])
+    newbandsform.fill_area([b for b in bands if b.state == BAND_STATES['queued']])
 
     playform = PlayForm()
 
@@ -33,25 +36,29 @@ def dashboard():
         template='dashboard-template',
         current_user=current_user,
         playform=playform,
-        bandsform=bandsform
+        bandsform=bandsform,
+        newbandsform=newbandsform
     )
 
 
 @main_bp.route('/edit', methods=['POST'])
 @login_required
 def edit():
-    bandsform = EditForm()
+    bandsform = EditForm(BAND_STATES['approved'])
     if bandsform.validate_on_submit():
         edited_bands = bandsform.parse_bands(current_user)
         edited_bands = [db.session.merge(band) for band in edited_bands]
         to_delete_bands = [b for b in current_user.bands
                            if b.state == BAND_STATES['approved'] and b not in edited_bands]
         for b in to_delete_bands:
-            b.state = BAND_STATES['denied']
+            db.session.delete(b)
         db.session.commit()
     else:
         raise Exception('Should not happend')
     bandsform.fill_area(edited_bands)
+
+    newbandsform = EditForm(BAND_STATES['queued'])
+    newbandsform.fill_area([b for b in current_user.bands if b.state == BAND_STATES['queued']])
 
     playform = PlayForm()
 
@@ -61,7 +68,40 @@ def edit():
         template='dashboard-template',
         current_user=current_user,
         playform=playform,
-        bandsform=bandsform
+        bandsform=bandsform,
+        newbandsform=newbandsform
+    )
+
+
+@main_bp.route('/queue', methods=['POST'])
+@login_required
+def queue():
+    bandsform = EditForm(BAND_STATES['approved'])
+    bandsform.fill_area([b for b in current_user.bands if b.state == BAND_STATES['approved']])
+
+    newbandsform = EditForm(BAND_STATES['queued'])
+    if newbandsform.validate_on_submit():
+        edited_bands = newbandsform.parse_bands(current_user)
+        edited_bands = [db.session.merge(band) for band in edited_bands]
+        to_delete_bands = [b for b in current_user.bands
+                           if b.state == BAND_STATES['queued'] and b not in edited_bands]
+        for b in to_delete_bands:
+            db.session.delete(b)
+        db.session.commit()
+    else:
+        raise Exception('Should not happend')
+    newbandsform.fill_area(edited_bands)
+
+    playform = PlayForm()
+
+    return render_template(
+        'dashboard.jinja2',
+        title='Oblibands',
+        template='dashboard-template',
+        current_user=current_user,
+        playform=playform,
+        bandsform=bandsform,
+        newbandsform=newbandsform
     )
 
 
