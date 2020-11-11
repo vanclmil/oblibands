@@ -1,4 +1,5 @@
 """Database models."""
+
 from sqlalchemy.orm import relationship
 
 from app import db
@@ -6,6 +7,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from sqlalchemy import ForeignKey, Table
+
+from datetime import datetime
 
 
 class User(UserMixin, db.Model):
@@ -75,4 +78,51 @@ class Band(db.Model):
     )
     url = db.Column(
         db.Text
+    )
+
+
+class PlayedBand(db.Model):
+    __tablename__ = 'played_band'
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    user_id = db.Column(
+        db.Integer,
+        ForeignKey('user.id'),
+        primary_key=True
+    )
+    band_name = db.Column(
+        db.String(200)
+    )
+    url = db.Column(
+        db.Text
+    )
+    date = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
+
+class PlayedTags(db.Model):
+    __tablename__ = 'played_tags'
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    user_id = db.Column(
+        db.Integer,
+        ForeignKey('user.id'),
+        primary_key=True
+    )
+    tags = db.Column(
+        db.Text
+    )
+    date = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
     )

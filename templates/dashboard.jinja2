@@ -29,6 +29,9 @@
                 </fieldset>
                 <fieldset class="tags">
                     {{ playform.tagsbox.label }}
+                    {% for tags in played_tags %}
+                        <input type="submit" name="playsubmit" value="{{ tags }}">
+                    {% endfor %}
                     {{ playform.tagsbox }}
                 </fieldset>
 
@@ -36,6 +39,11 @@
                     {{ playform.playsubmit }}
                 </div>
             </form>
+
+            <h2>Latest</h2>
+            {% for record in played_bands %}
+                <a href="{{ record.url }}">{{ record.band_name }}</a>
+            {% endfor %}
 
             <h2>Your bands</h2>
             <p>Example format:

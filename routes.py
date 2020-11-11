@@ -6,7 +6,7 @@ from app import db
 from forms import EditForm, PlayForm
 
 # Blueprint Configuration
-from models import Band, BAND_STATES
+from models import Band, BAND_STATES, PlayedBand, PlayedTags
 
 from numpy.random import choice
 
@@ -17,18 +17,22 @@ main_bp = Blueprint(
 )
 
 
-@main_bp.route('/', methods=['GET'])
-@login_required
-def dashboard():
+def index(bandsform=None, newbandsform=None):
     bands = Band.query.filter_by(user_id=current_user.id).all()
 
-    bandsform = EditForm(BAND_STATES['approved'])
-    bandsform.fill_area([b for b in bands if b.state == BAND_STATES['approved']])
+    if not bandsform:
+        bandsform = EditForm(BAND_STATES['approved'])
+        bandsform.fill_area([b for b in bands if b.state == BAND_STATES['approved']])
 
-    newbandsform = EditForm(BAND_STATES['queued'])
-    newbandsform.fill_area([b for b in bands if b.state == BAND_STATES['queued']])
+    if not newbandsform:
+        newbandsform = EditForm(BAND_STATES['queued'])
+        newbandsform.fill_area([b for b in bands if b.state == BAND_STATES['queued']])
 
     playform = PlayForm()
+
+    played_bands = PlayedBand.query.filter_by(user_id=current_user.id).order_by(PlayedBand.date.desc()).limit(10).all()
+    played_tags = {t.tags for t in
+                   PlayedTags.query.filter_by(user_id=current_user.id).order_by(PlayedTags.date.desc()).limit(10).all()}
 
     return render_template(
         'dashboard.jinja2',
@@ -37,8 +41,16 @@ def dashboard():
         current_user=current_user,
         playform=playform,
         bandsform=bandsform,
-        newbandsform=newbandsform
+        newbandsform=newbandsform,
+        played_bands=played_bands,
+        played_tags=played_tags
     )
+
+
+@main_bp.route('/', methods=['GET'])
+@login_required
+def dashboard():
+    return index()
 
 
 @main_bp.route('/edit', methods=['POST'])
@@ -60,28 +72,12 @@ def edit():
     else:
         raise Exception('Should not happend')
 
-    newbandsform = EditForm(BAND_STATES['queued'])
-    newbandsform.fill_area([b for b in current_user.bands if b.state == BAND_STATES['queued']])
-
-    playform = PlayForm()
-
-    return render_template(
-        'dashboard.jinja2',
-        title='Oblibands',
-        template='dashboard-template',
-        current_user=current_user,
-        playform=playform,
-        bandsform=bandsform,
-        newbandsform=newbandsform
-    )
+    return index(bandsform=bandsform)
 
 
 @main_bp.route('/queue', methods=['POST'])
 @login_required
 def queue():
-    bandsform = EditForm(BAND_STATES['approved'])
-    bandsform.fill_area([b for b in current_user.bands if b.state == BAND_STATES['approved']])
-
     newbandsform = EditForm(BAND_STATES['queued'])
     if newbandsform.validate_on_submit():
         try:
@@ -98,17 +94,7 @@ def queue():
     else:
         raise Exception('Should not happend')
 
-    playform = PlayForm()
-
-    return render_template(
-        'dashboard.jinja2',
-        title='Oblibands',
-        template='dashboard-template',
-        current_user=current_user,
-        playform=playform,
-        bandsform=bandsform,
-        newbandsform=newbandsform
-    )
+    return index(newbandsform=newbandsform)
 
 
 class SpotifyEngine:
@@ -151,11 +137,13 @@ def play():
         if playform.validate_on_submit():
             engine_name = playform.engineselect.data
             tags_string = playform.tagsbox.data
+            if playform.playsubmit.raw_data[0] != 'Let\'s rock!':
+                tags_string = playform.playsubmit.raw_data[0]
             new_bands = playform.queueselect.data
     else:
         engine_name = request.args.get('engine', default='default', type=str)
-        tags_string = request.args.get('tags', type=str)
-        new_bands = request.args.get('newbands', type=bool)
+        tags_string = request.args.get('tags', default='', type=str)
+        new_bands = request.args.get('newbands', default=False, type=bool)
     engine = SUPPORTED_ENGINES.get(engine_name, DefaultEngine)
     tags = [t.strip() for t in tags_string.split(';') if t.strip() != '']
 
@@ -175,8 +163,15 @@ def play():
     total = sum(ratings)
     probabilities = [r / total for r in ratings]
     band = choice(bands, 1, p=probabilities)[0]
+    url = engine.completeUrl(band)
 
-    return redirect(engine.completeUrl(band))
+    played_band = PlayedBand(band_name=band.name, url=url, user_id=current_user.id)
+    played_tags = PlayedTags(tags=tags_string, user_id=current_user.id)
+    db.session.add(played_band)
+    db.session.add(played_tags)
+    db.session.commit()
+
+    return redirect(url)
 
 
 @main_bp.route("/logout")
