@@ -146,18 +146,23 @@ SUPPORTED_ENGINES = {
 @main_bp.route('/play', methods=['GET', 'POST'])
 @login_required
 def play():
-    bands = Band.query.filter_by(user_id=current_user.id, state=BAND_STATES['approved']).all()
-
     if request.method == 'POST':
         playform = PlayForm()
         if playform.validate_on_submit():
             engine_name = playform.engineselect.data
             tags_string = playform.tagsbox.data
+            new_bands = playform.queueselect.data
     else:
         engine_name = request.args.get('engine', default='default', type=str)
         tags_string = request.args.get('tags', type=str)
+        new_bands = request.args.get('newbands', type=bool)
     engine = SUPPORTED_ENGINES.get(engine_name, DefaultEngine)
     tags = [t.strip() for t in tags_string.split(';') if t.strip() != '']
+
+    if new_bands:
+        bands = Band.query.filter_by(user_id=current_user.id, state=BAND_STATES['queued']).all()
+    else:
+        bands = Band.query.filter_by(user_id=current_user.id, state=BAND_STATES['approved']).all()
 
     if tags:
         bands = [b for b in bands if any(t in b.tags for t in tags)]

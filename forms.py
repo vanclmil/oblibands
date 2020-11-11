@@ -1,6 +1,6 @@
 """Sign-up & log-in forms."""
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, SubmitField, RadioField, TextAreaField
+from wtforms import BooleanField, PasswordField, StringField, SubmitField, RadioField, TextAreaField
 from wtforms.validators import DataRequired, EqualTo, Length
 
 from models import Band, BAND_STATES
@@ -76,4 +76,5 @@ class PlayForm(FlaskForm):
                               choices=[('default', 'default'), ('spotify', 'Spotify'), ('youtube', 'Youtube')],
                               default='default')
     tagsbox = StringField('Tags', render_kw={'style': 'width: 100%'})
+    queueselect = BooleanField('Select from new bands')
     playsubmit = SubmitField('Let\'s rock!')
