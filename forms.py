@@ -59,7 +59,9 @@ class EditForm(FlaskForm):
         bands_str_list = bands_str.split('\n')
         bands = []
         for i, band in enumerate(bands_str_list):
-            tokens = [t.strip() for t in band.split('\t')]
+            tokens = [t.strip() for t in band.split('\t')] + ['']*4
+            if tokens[2] == '':
+                tokens[2] = 1.0
 
             bands.append(Band(id=i,
                               name=tokens[0],
