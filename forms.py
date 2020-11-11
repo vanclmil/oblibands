@@ -49,7 +49,7 @@ class EditForm(FlaskForm):
         self.state = state
 
     def fill_area(self, bands):
-        bands_str_list = ['\t'.join([band.name, band.tags, str(band.rating), band.url])
+        bands_str_list = ['\t'.join([band.name.ljust(20), str(band.rating), band.tags, band.url])
                           for band in bands]
         bands_str = '\n'.join(bands_str_list)
         self.editarea.data = bands_str
@@ -60,13 +60,13 @@ class EditForm(FlaskForm):
         bands = []
         for i, band in enumerate(bands_str_list):
             tokens = [t.strip() for t in band.split('\t')] + ['']*4
-            if tokens[2] == '':
-                tokens[2] = 1.0
+            if tokens[1] == '':
+                tokens[1] = 1.0
 
             bands.append(Band(id=i,
                               name=tokens[0],
-                              tags=tokens[1],
-                              rating=float(tokens[2]),
+                              rating=float(tokens[1]),
+                              tags=tokens[2],
                               url=tokens[3],
                               user_id=user.id,
                               state=self.state))
