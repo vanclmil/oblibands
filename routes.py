@@ -145,7 +145,7 @@ def play():
         tags_string = request.args.get('tags', default='', type=str)
         new_bands = request.args.get('newbands', default=False, type=bool)
     engine = SUPPORTED_ENGINES.get(engine_name, DefaultEngine)
-    tags = [t.strip() for t in tags_string.split(';') if t.strip() != '']
+    tags = [t.strip() for t in tags_string.split('/') if t.strip() != '']
 
     if new_bands:
         bands = Band.query.filter_by(user_id=current_user.id, state=BAND_STATES['queued']).all()
